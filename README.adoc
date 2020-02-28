@@ -1,0 +1,403 @@
+:toc:
+
+= Docker Workshop
+
+This repository consists of notes and links regarding Docker. It is named "workshop", but can only be considered to be the base for a real workshop. The main source of this repository is the great https://www.udemy.com/course/docker-for-java-developers/[Udemy workshop Docker for Java Developers by John Thompson]. Johns Docker Cheat Sheet can be found https://springframework.guru/docker-cheat-sheet-for-spring-devlopers/[here].
+
+== Fundamental Concepts
+
+* Docker-Daemon runs in linux kernel and base for Docker images to run on; can be controlled using CLI
+* "image" = set of layers based on a base-image ("from scratch") that describe an environment that can be run
+* "container" = instance of an image
+
+== Tooling
+* https://docs.docker.com/docker-for-mac/edge-release-notes/[Docker Desktop]
+* nice UI for managing docker containers: https://kitematic.com[Kitematic]
+** will be integrated into Docker Desktop in 2020
+** https://github.com/docker/kitematic[github]
+** https://github.com/docker/kitematic/releases[also available for Windows]
+
+== Common Commands
+* general information about Docker installation:
+----
+docker info
+----
+
+* create new container and start it:
+----
+docker run
+----
+
+* create new container for httpd-server and start it, using a specified name instead of auto-generated name:
+----
+docker run --name steven.schwenke httpd:2.4
+----
+
+* "docker run" runs interactively. To run as deamon in background:
+----
+docker run -D
+----
+
+* start existing container:
+----
+docker start
+----
+
+* stop running container (instance of container can be restarted later)
+----
+docker stop
+----
+
+* https://stackoverflow.com/questions/34782678/difference-between-running-and-starting-a-docker-container[difference between run und start]:
+** run creates new container of an image and executes container
+** start launches previously stopped container with same settings. Opposite to "stop".
+
+* kill one or more running containers:
+----
+docker kill
+----
+* get information about running container:
+----
+docker inspect
+----
+* list running containers:
+----
+docker ps
+----
+* list containers, even exited (exit-code 0):
+----
+docker ps -a
+----
+* pull image from remote registry so it is available on local machine:
+----
+docker pull
+----
+* list all local available images:
+----
+docker images
+----
+* example: pull image "hello world" from remote registry to local machine and start it:
+----
+docker run hello-world
+----
+* show logs of running container ("-f" for "follow"):
+----
+docker logs -f [container-id]
+----
+* run command in running container:
+----
+docker exec [container-id] [command]
+----
+* SSH into container / interactive shell:
+----
+docker exec -it [container id] [befehl]
+docker exec -it mycontainer /bin/bash
+----
+
+* run httpd-server with forwarded port (port 80 from within container forwarded to 8003 of local machine) and specified name:
+----
+docker run -d -p 8003:80 --name stevensContainer httpd:2.4
+----
+
+* run httpd-server with forwarded port (port 80 from within container forwarded to 8003 of local machine), specified name and volume to use for web-server so that index.html in specified directory will be displayed via webserver under localhost:8003:
+----
+docker run -d -p 8003:80 -v c:/temp/myWebserver/:/usr/local/apache2/htdocs/ httpd:2.4
+----
+
+* show mounted directories:
+----
+docker inspect
+----
+
+
+== Dockerfiles
+
+* = file named "Dockerfile" used to build image
+
+=== Layering
+* Dockerfile contains set of instructions / commands / directives
+* every command run will create a new image layer, except for when multiple commands are linked with "\" (only one layer is created then)
+* each layer has its own image-ID (hash)
+* Hashes can be referenced via tags
+* returns tag-names of all installed images (see column "IMAGE ID"):
+----
+docker images
+----
+* returns only hash-values of all installed images:
+----
+docker images -q
+----
+- layers can be seen for example when running docker-compose up (see below)
+
+=== Building images with dockerfile
+* first directive: "FROM", for example "FROM scratch" which builds image as a Base-Image.
+* "RUN" to execute commands, for example "RUN apt-get install httpd". Multi-line commands with "&&".
+* "ENV" = environment variables, for example "ENV JAVA_HOME=/home/bla/myjava". Can be overriden when starting container with "docker run -d -e MYSQL_PASSWORD=geheim myImage:1.0"
+* "ADD" to copy files from host into image, for example "ADD /var/archive.tgz /var/" - archive-files will be extracted in target directory. Also possible with URIs: "ADD https://bla/index.html /tmp/"
+* "EXPOSE" to expose ports, for example "EXPOSE 53/udp". Attention: dockerfile is only documentation, ports have to be mapped at container start:
+* "docker run -P [...]" mapps the ports documented in dockerfile
+* "USER" to execute commands by a certain user
+* "ENTRYPOINT" to define what should be done after container start. Best-practice: EXEC-form instead of Shell-Form.
+* builds image-file from remote dockerfile:
+----
+docker build -t [Registry]/[Image-Name]:[Tag] [path to dockerfile]
+----
+* build image-file from local dockerfile:
+----
+docker build -t fko-nginx
+----
+* builds image file with tag 1.0.0:
+----
+docker build -t bla:1.0.0 /home/bla/Dockerfile
+----
+
+== Docker Volumes Mechanism
+* container not supposed to be altered when running
+* hence question: How to persist data?
+* => docker volumes!
+* show all existing volumes:
+----
+docker volume ls
+----
+* use local directory "stevensDirectoryForWebserver" as root directory for webserver:
+----
+docker run -d -p 8003:80 -v stevensDirectoryForWebserver:/usr/local/apache2/htdocs/ httpd:2.4
+----
+* possible to start multiple containers with same volume (share that directory)
+* volumes persistent even after container destroyed
+* copy files from container to local:
+----
+docker cp [container-id]:[path in container] [local path]
+----
+
+== Fabric8
+* https://github.com/fabric8io/docker-maven-plugin
+* Maven-plugin to build and run docker from Maven
+* typical command to build current project as docker image:
+----
+mvn clean package docker:build
+----
+* creates image in local repository so it is visible with "docker images"
+* Alternative for Gradle: https://github.com/Transmode/gradle-docker
+
+
+
+== Docker-Compose
+* = Tool for multi-container Docker systems
+* sufficient for small and medium-sized applications
+* example docker-compose.yml from https://docs.docker.com/compose/wordpress/:
+
+[source,yml]
+----
+version: '3.3'
+
+services:
+   db:
+     image: mysql:5.7
+     volumes:
+       - db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: somewordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+
+   wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "8000:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+       WORDPRESS_DB_NAME: wordpress
+volumes:
+    db_data: {}
+----
+
+* "depends_on" causes container to be started after dependent containers have been started, but not necessarily finished starting! Hence: Race-condition possible. Workaround: "restart: always" will restart the container as often as needed to wait for dependent containers. See https://docs.docker.com/compose/compose-file/#depends_on
+* (see above) Fabric8 (Maven-plugin to start Docker from within Maven) will wait up to a specified  timeout for dependent containers to start
+* "docker compose"-commands have to be executed from directory where docker-compose-file is
+* start stack in current terminal (extensive logs!):
+----
+docker-compose up
+----
+* start stack as demon (no logs):
+----
+docker-compose up -d
+----
+* shut down all containers inside the docker-compose-file:
+----
+docker-compose down
+----
+* show running containers:
+----
+docker-compose ps
+----
+
+== Docker Swarm Mode
+* https://docs.docker.com/engine/swarm/
+* = built-in solution for container orchestration
+* multiple host systems run docker containers that talk to each other, forming a virtual single host out of multiple hosts
+* sufficient for smaller businesses
+
+=== Other Options for Container Orchestration:
+* Kubernetes (by Google) = for very large-scale organizations
+* OpenShift (by Red Hat) = wrapper around Kubernetes, commercial
+* Open Shift Origin = open source version of Open Shift
+* Mesosphere = orchestration backed by Apache, commercial
+* Apache Mesos = open source version of Mesosphere
+
+=== Activating Docker Swarm Mode
+* check if docker swarm is active or not via
+----
+docker info
+----
+* result:
+----
+...
+Swarm: inactive
+...
+----
+* enable swarm mode:
+----
+docker swarm init
+----
+* this
+** sets up a private key infrastructure with a root signing certificate for this swarm
+** issued a certificate for the first manager node
+** creates join tokens for other nodes
+** prints join tokens and instructions on how to add other nodes to the swarm
+** creates "raft consensus database" to sync nodes, store root cert and other information
+* token can be used to join swarm via
+----
+docker swarm join --token mytoken
+----
+* print information about docker swarm nodes:
+----
+docker node ls
+----
+
+
+=== Docker Swarm Topology
+* two node types:
+** manager
+** worker
+* manager-nodes run containers like worker-nodes
+* manager-nodes use quorum to reprovision failing worker-nodes, hence robustness of swarm
+** important: documentation suggests odd number of manager nodes so they can reach a decision
+* one manager-node is "leader"
+* if leader goes down, another one is selected
+
+=== Setting up a Docker Swarm
+The following is an example of how to set up Docker Swarm on multiple hosts.
+
+* Hint when setting up nodes: should talk over public IP instead of cloud-internal IP, hence specify IP when initializing! (can be grabbed from cloud provider web interface)
+
+* node 1: initialize swarm:
+----
+docker swarm init --advertise-addr 42.42.42.42
+----
+* => outputs command to add second node
+
+* node 2: join swarm as worker node:
+----
+docker swarm join --token mylongtoken
+----
+* node 1: check if worker node is actually in the swarm:
+----
+docker info
+docker node ls
+----
+* => swarm is active and has two nodes: node 1 as manager and  leader, node 2 as worker
+* node 2 cannot execute "node ls" because it's no manager-node!
+* node 1: get command to join new manager:
+----
+docker swarm join-token manager
+----
+* => creates command for adding new managers
+* node 1: get command from manager node to add new worker nodes:
+----
+docker node join-token worker
+----
+* => creates command for adding new workers
+
+=== Auto-Assigning new Leader
+* nuking current leader-node:
+----
+ps -ef | grep docker
+kill -9 42421
+reboot -f
+----
+* => (if existing) another manager-node will become leader
+
+=== portainer.io
+* portainer.io
+** = management tool for docker swarm environments
+** https://www.portainer.io/installation/[installation]
+* will display manageer- and worker-nodes nicely in web UI
+
+=== Services and Service Discovery
+* image that runs in Docker swarm mode = "service", see https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/
+* commands: https://docs.docker.com/engine/reference/commandline/service/
+* created with
+----
+docker service create
+----
+* same parameters for "_docker run_" work with "_docker service create_", difference only in "_docker run_" running container as simple docker container on local machine, "_docker service create_" running container as service in swarm
+* docker service, for example installed and running portainer, will be discovered automatically, hence: request service from any of the IPs in the cluster, will be automatically forwarded to node that runs service (technical background: Docker Routing Mesh)
+* list all services:
+-----
+docker service ls
+-----
+
+==== Docker Overlay Network
+* running multiple applications on swarm instead of only one docker host: maybe different parts of application will be running on different hosts of swarm, hence don't "see" each other, hence Docker Overlay Network important to routing
+* Docker Overlay Network = virtual network over multiple nodes of a swarm cluster so that containers inside cluster can communicate with each other
+* creation of multiple networks possible to constrain communication between services in their own networks
+
+==== Docker Swarm Stacks
+* running multiple commands to create services
+* extension of docker compose file: add deploy-instructions to existing build-instructions in docker compose file
+** _docker compose_ will ignore deploy-instructions
+** _docker swarm_ will ignore build-instructions
+* new option "_deploy_" in docker compose file:
+----
+services:
+    ...
+    mysqldb:
+        ...
+        networks:
+            - database_net
+        deploy:
+            replicas: 1
+    ...
+networks:
+    rabbit_net:
+        driver: overlay
+    database_net
+        driver: overlay
+----
+* command to deploy whole stack defined in docker compose file:
+----
+docker stack deploy -c docker-compose.yml name_of_stack
+----
+
+==== Docker Secrets
+* available to docker swarm services
+* secrets made available inside containers via file system mount at /run/secrets/<secretname>
+* commands:
+----
+docker secret create
+docker secret inspect
+docker secret ls
+docker secret rm
+----
+
+== Cookbooks
+* See last section "Spring Boot Cookbook" for concrete examples
+* explains numerous examples that are available at https://github.com/springframeworkguru
