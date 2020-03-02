@@ -9,6 +9,7 @@ This repository consists of notes and links regarding Docker. It is named "works
 * Docker-Daemon runs in linux kernel and base for Docker images to run on; can be controlled using CLI
 * "image" = set of layers based on a base-image ("from scratch") that describe an environment that can be run
 * "container" = instance of an image
+* difference between Docker and virtual machines (VMs): Docker needs less resources and has a very low boot-up-time, hence creating and discarding containers in great numbers possible with Docker, but not VMs
 
 == Tooling
 * https://docs.docker.com/docker-for-mac/edge-release-notes/[Docker Desktop]
@@ -79,6 +80,10 @@ docker images
 * example: pull image "hello world" from remote registry to local machine and start it:
 ----
 docker run hello-world
+----
+* more interesting hello-word example:
+----
+docker run docker/whalesay cowsay "I am a big fat-ass whale!"
 ----
 * show logs of running container ("-f" for "follow"):
 ----
