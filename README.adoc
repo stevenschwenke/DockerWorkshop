@@ -149,11 +149,15 @@ docker build -t [Registry]/[Image-Name]:[Tag] [path to dockerfile]
 ----
 * build image-file from local dockerfile:
 ----
-docker build -t fko-nginx
+docker build -t fko-nginx .
 ----
 * builds image file with tag 1.0.0:
 ----
 docker build -t bla:1.0.0 /home/bla/Dockerfile
+----
+* remove dangling images, see https://nickjanetakis.com/blog/docker-tip-31-how-to-remove-dangling-docker-images[this article]:
+----
+docker system prune
 ----
 
 == Docker Volumes Mechanism
