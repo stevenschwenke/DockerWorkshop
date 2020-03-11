@@ -97,6 +97,12 @@ docker exec [container-id] [command]
 ----
 docker exec -it [container id] [befehl]
 docker exec -it mycontainer /bin/bash
+docker exec -it mycontainer /bin/sh
+----
+
+* SSH into container while creating container:
+----
+docker container run -it ubuntu bash
 ----
 
 * run httpd-server with forwarded port (port 80 from within container forwarded to 8003 of local machine) and specified name:
