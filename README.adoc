@@ -4,9 +4,12 @@
 
 This repository consists of notes and links regarding Docker. It is named "workshop", but can only be considered to be the base for a real workshop. The main source of this repository is the great https://www.udemy.com/course/docker-for-java-developers/[Udemy workshop Docker for Java Developers by John Thompson]. Johns Docker Cheat Sheet can be found https://springframework.guru/docker-cheat-sheet-for-spring-devlopers/[here].
 
+The workshop was enhanced in 2021 with aspects from the https://github.com/msgoat/cxp-dox-home/[Cloud Expert Program
+of msg].
+
 == Fundamental Concepts
 
-* Docker-Daemon runs in linux kernel and base for Docker images to run on; can be controlled using CLI
+* Docker-Daemon runs in linux kernel and is the base for Docker images to run on; can be controlled using CLI
 * "image" = set of layers based on a base-image ("from scratch") that describe an environment that can be run
 * "container" = instance of an image
 * difference between Docker and virtual machines (VMs): Docker needs less resources and has a very low boot-up-time, hence creating and discarding containers in great numbers possible with Docker, but not VMs
@@ -34,7 +37,7 @@ docker run
 docker run --name steven.schwenke httpd:2.4
 ----
 
-* "docker run" runs interactively. To run as deamon in background:
+* "docker run" runs interactively. To run as daemon in background:
 ----
 docker run -D
 ----
@@ -50,7 +53,8 @@ docker stop
 ----
 
 * https://stackoverflow.com/questions/34782678/difference-between-running-and-starting-a-docker-container[difference between run und start]:
-** run creates new container of an image and executes container
+** run creates new container with _docker create_ from an image (which is downloaded if not existing in local
+repository) and executes container
 ** start launches previously stopped container with same settings. Opposite to "stop".
 
 * kill one or more running containers:
@@ -73,7 +77,7 @@ docker ps -a
 ----
 docker pull
 ----
-* list all local available images:
+* list all images in local repository:
 ----
 docker images
 ----
@@ -115,7 +119,7 @@ docker run -d -p 8003:80 --name stevensContainer httpd:2.4
 docker run -d -p 8003:80 -v c:/temp/myWebserver/:/usr/local/apache2/htdocs/ httpd:2.4
 ----
 
-* show mounted directories:
+* show information of running container, like mounted directories:
 ----
 docker inspect
 ----
@@ -141,14 +145,52 @@ docker images -q
 - layers can be seen for example when running docker-compose up (see below)
 
 === Building images with dockerfile
-* first directive: "FROM", for example "FROM scratch" which builds image as a Base-Image.
-* "RUN" to execute commands, for example "RUN apt-get install httpd". Multi-line commands with "&&".
+
+Example Dockerfile taken from https://github.com/msgoat/cxp-dox-home/blob/master/docs/docker/docker_dockerfile_2_container_by_example.md[msg Cloud Expert Program]:
+
+----
+FROM adoptopenjdk/openjdk11:x86_64-alpine-jre-11.0.6_10
+
+LABEL maintainer="${yourUserIdOrEmail}" \
+        group.msg.at.cloud.cnj-hello-backend-spring.project="CXP" \
+        group.msg.at.cloud.cnj-hello-backend-spring.version="3.0.0" \
+        group.msg.at.cloud.cnj-hello-backend-spring.description="Simplest possible cloud native java backend based on Spring Boot"
+
+ENV JAVA_OPTS="" \
+    DOCKER_JAVA_OPTS="" \
+    SPRING_JAVA_OPTS="" \
+    SPRING_PROFILES_ACTIVE="default" \
+    CNAP_CLOUD="local"
+
+RUN echo "adding run user spring to system" \
+    && addgroup -S spring -g 1000 \
+    && adduser -S spring -u 1000 -G spring
+
+COPY *.jar /home/spring/
+COPY docker-entrypoint.sh /home/spring/
+
+RUN chown -R spring:spring /home/spring \
+    && chmod u+x /home/spring/docker-entrypoint.sh
+
+USER spring
+
+EXPOSE 8080
+
+ENTRYPOINT ["/home/spring/docker-entrypoint.sh"]
+CMD ["java"]
+----
+
+* first directive: "FROM". Can also be "FROM scratch" which builds image as a Base-Image.
+* "RUN" to execute commands while building the image, for example "RUN apt-get install httpd" to setup the system.
+Multi-line commands with "&&".
 * "ENV" = environment variables, for example "ENV JAVA_HOME=/home/bla/myjava". Can be overriden when starting container with "docker run -d -e MYSQL_PASSWORD=geheim myImage:1.0"
 * "ADD" to copy files from host into image, for example "ADD /var/archive.tgz /var/" - archive-files will be extracted in target directory. Also possible with URIs: "ADD https://bla/index.html /tmp/"
 * "EXPOSE" to expose ports, for example "EXPOSE 53/udp". Attention: dockerfile is only documentation, ports have to be mapped at container start:
 * "docker run -P [...]" mapps the ports documented in dockerfile
 * "USER" to execute commands by a certain user
 * "ENTRYPOINT" to define what should be done after container start. Best-practice: EXEC-form instead of Shell-Form.
+* "CMD" is executed when launching the image, for example to start processes within the container
+* process of application should be run by separate user, see above "adding run user spring to system" and "USER spring"
 * builds image-file from remote dockerfile:
 ----
 docker build -t [Registry]/[Image-Name]:[Tag] [path to dockerfile]
@@ -165,6 +207,8 @@ docker build -t bla:1.0.0 /home/bla/Dockerfile
 ----
 docker system prune
 ----
+* Build Context (folder in which docker build is executed) should be as small as possible by either placing it in a
+separate folder (from rest of project) or useing a .dockerignore -file.
 
 == Docker Volumes Mechanism
 * container not supposed to be altered when running
@@ -184,6 +228,33 @@ docker run -d -p 8003:80 -v stevensDirectoryForWebserver:/usr/local/apache2/htdo
 ----
 docker cp [container-id]:[path in container] [local path]
 ----
+
+== Walkthrough: From Sourcecode to Container
+
+1. Build with Maven or Gradle / Wrapper
+2. Create Image with
+
+    docker build -t stevenschwenke/myapp:latest .
+
+3. Create container and configure names and ports with
+
+    docker run -p 8080:8080 --name stevensapp stevenschwenke/myapp
+
+4. Former command runs container; can be stopped with
+
+    docker stop stevensapp
+
+5. Start container again with
+
+    docker start stevensapp
+
+6. Delete container with
+
+    docker rm stevensapp
+
+7. Delete image with
+
+    docker rmi stevenschwenke/myapp
 
 == Fabric8
 * https://github.com/fabric8io/docker-maven-plugin
