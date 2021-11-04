@@ -280,51 +280,95 @@ docker container stats
 * for all container statistics
 
 
+== Getting Inside a Container
+* discouraged for production containers because these should not be changed manually!
+* no SSH needed because Docker provides access into containers, see below
+
+=== Starting a Container Interactively
+----
+docker container run --name first-container -it nginx bash
+----
+* t for pseudo TTY (simulate terminal)
+* i for interactive (keep STDIN open for commands)
+* 'bash' for specifying command that should be run instead of the standard command; bash is a common shell used in
+many containers. Exit with 'exit'.
+
+To demonstrate that containers are persistent, let's change a container by installing _curl_ in it:
+
+----
+docker container run --name my-ubuntu -it ubuntu
+----
+* Ubuntus default command is bash, hence no need to specify it
+
+The above should download Ubuntu and start the bash of the container.
+
+*Within the Ubuntu-container*, _curl_ is not installed yet:
+
+----
+curl --help
+----
+----
+root@91759829ee87:/# curl --help
+bash: curl: command not found
+----
+
+Let's install it:
+----
+apt-get update
+apt-get install -y curl
+----
+
+Curl can now be used to get websites:
+----
+curl https://stevenschwenke.de
+----
+
+Exit container:
+----
+exit
+----
+
+Start container again:
+----
+docker container start -ai my-ubuntu
+----
+*Notice the slightly different syntax "ai" for "attach interactive" instead of "it" for "interactive TTY".*
+
+
+=== Running Additional Commands in Existing Container
+----
+docker container exec -it my-ubuntu bash
+----
+* (container 'my-ubuntu' has to run before executing this)
+* 'exec' runs additional process so the container is not stopped when typing 'exit' in shell within container
+
+
+== Repositories
+A short exercise for understanding the local image repository.
+
+Let's download (only) the image for Alpine Linux and delete it afterwards:
+----
+docker image ls
+docker pull alpine
+docker image ls
+docker image rm alpine
+docker image ls
+----
+
+
+
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
 
 
 
-
-
-
-
+=== Other Stuff
 * kill one or more running containers:
 ----
 docker kill
 ----
-* get information about running container:
-----
-docker inspect
-----
 * pull image from remote registry so it is available on local machine:
 ----
 docker pull
-----
-* more interesting hello-word example:
-----
-docker run docker/whalesay cowsay "I am a big fat-ass whale!"
-----
-* run command in running container:
-----
-docker exec [container-id] [command]
-----
-* SSH into container / interactive shell:
-----
-docker exec -it [container id] [befehl]
-docker exec -it mycontainer /bin/bash
-docker exec -it mycontainer /bin/sh
-----
-
-* SSH into container while creating container:
-----
-docker container run -it ubuntu bash
-----
-
-
-
-* show information of running container, like mounted directories:
-----
-docker inspect
 ----
 
 
