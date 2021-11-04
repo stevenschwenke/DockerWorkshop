@@ -96,7 +96,9 @@ docker container run -p 80:80 --name first-container nginx
 * will download needed images from remote docker repository
 * in browser at localhost:80 welcome-page of nginx
 * will block current terminal
-* -p for --publish
+* -p for --publish. Means that port 80 from within container is forwarded to 80 of local machine. Syntax: left-hand =
+local machine, right-hand = port in container. Example: 8080:80 means that local machine port 8080 is equal to port
+80 in container.
 * -- name specifies name; if left, Docker generates name
 
 === List Running Containers
@@ -265,7 +267,6 @@ stevenschwenke@msgn13623:/mnt/c/Users/schwenks$ yc
 ----
 
 
-
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
 
 
@@ -306,15 +307,7 @@ docker exec -it mycontainer /bin/sh
 docker container run -it ubuntu bash
 ----
 
-* run httpd-server with forwarded port (port 80 from within container forwarded to 8003 of local machine) and specified name:
-----
-docker run -d -p 8003:80 --name stevensContainer httpd:2.4
-----
 
-* run httpd-server with forwarded port (port 80 from within container forwarded to 8003 of local machine), specified name and volume to use for web-server so that index.html in specified directory will be displayed via webserver under localhost:8003:
-----
-docker run -d -p 8003:80 -v c:/temp/myWebserver/:/usr/local/apache2/htdocs/ httpd:2.4
-----
 
 * show information of running container, like mounted directories:
 ----
