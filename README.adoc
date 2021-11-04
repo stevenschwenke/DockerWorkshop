@@ -95,6 +95,7 @@ docker container run -p 80:80 --name first-container nginx
 
 * will download needed images from remote docker repository
 * in browser at localhost:80 welcome-page of nginx
+* also, directly within terminal 'curl localhost: 80'
 * will block current terminal
 * -p for --publish. Means that port 80 from within container is forwarded to 80 of local machine. Syntax: left-hand =
 local machine, right-hand = port in container. Example: 8080:80 means that local machine port 8080 is equal to port
@@ -218,7 +219,8 @@ docker container logs -f first-container
 * Refresh nginx-page in browser and see how requests are logged
 * leave with Ctrl + c
 
-== Processes
+== Getting Information
+=== Processes
 In Linux, 'top' shows running processes:
 ----
 top
@@ -265,6 +267,17 @@ uuidd               3177                3118                0                   
 uuidd               3178                3118                0                   08:50               ?                   00:00:00            nginx: worker process
 stevenschwenke@msgn13623:/mnt/c/Users/schwenks$ yc
 ----
+
+=== Meta-Data
+----
+docker container inspect first-container
+----
+
+=== Live Performance Data
+----
+docker container stats
+----
+* for all container statistics
 
 
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
