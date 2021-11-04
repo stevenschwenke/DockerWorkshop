@@ -2,60 +2,205 @@
 
 = Docker Workshop
 
-This repository consists of notes and links regarding Docker. It is named "workshop", but can only be considered to be the base for a real workshop. The main source of this repository is the great https://www.udemy.com/course/docker-for-java-developers/[Udemy workshop Docker for Java Developers by John Thompson]. Johns Docker Cheat Sheet can be found https://springframework.guru/docker-cheat-sheet-for-spring-devlopers/[here].
+This repository consists of notes, links and examples for learning the basics of Docker.
 
-The workshop was enhanced in 2021 with aspects from the https://github.com/msgoat/cxp-dox-home/[Cloud Expert Program
-of msg].
+There are three main source I used in creating this workshop:
+
+* https://www.udemy.com/course/docker-for-java-developers/[Udemy workshop Docker for Java Developers by John
+Thompson]. Johns Docker Cheat Sheet can be found https://springframework.guru/docker-cheat-sheet-for-spring-devlopers/[here].
+* https://github.com/msgoat/cxp-dox-home/[Cloud Expert Program of msg].
+* https://www.udemy.com/course/docker-mastery/[Docker Mastery: with Kubernetes +Swarm from a Docker Captain]
+
+The course may be used for learning Docker on your own or facilitating workshops.
+
+
+== Why Docker
+
+* one of the major shifts in IT:
+** 90's Mainframe to PC
+** 00's Baremetal to Virtual
+** 10's Datacenter to Cloud
+** ~2015 Host to Container (Docker, Serverless)
+* containers reduce complexity because only infrastructure for running containers has to be provided, not every
+specific setup detail
+* containers allow exactly same setup for development, testing and production
+
+
+== Setup for this Workshop
+
+**Before** this workshop, please setup docker. This can be done in multiple ways, for example via https://docs.docker.com/desktop/windows/install/[Docker Desktop],
+https://docs.microsoft.com/de-de/windows/wsl/tutorials/wsl-containers[Windows Subsystem for Linux] or just
+https://docs.docker.com/engine/install/ubuntu/[using a Linux and installing Docker]. It is recommended to use a
+(relatively) native environment such as WSL with Ubuntu.
+
+Test if the installation was successful by running
+
+----
+docker --version
+----
+
+You should see something like
+
+----
+Docker version 20.10.8, build 3967b7d
+----
+
+== Command Line Structure
+
+Structure of commands changed.
+
+* old (still working):
+----
+docker <command> (options)
+----
+** new:
+----
+docker <command> <subcommand> (options)
+----
+* old example:
+----
+docker run
+----
+** new example:
+----
+docker container run
+----
+
 
 == Fundamental Concepts
 
-* Docker-Daemon runs in linux kernel and is the base for Docker images to run on; can be controlled using CLI
-* "image" = set of layers based on a base-image ("from scratch") that describe an environment that can be run
-* "container" = instance of an image
+* **Docker-Daemon** runs in Linux kernel and is the base for Docker images to run on
+* **image** = set of layers based on a base-image ("from scratch") that describe an environment that can be run
+* **container** = running instance of an image
+* many containers can run same image
+* **registry** = where images can be downloaded. https://hub.docker.com[Docker Hub] is for containers what Github is
+for source code: remote
+Docker images are downloaded into local repository to be used.
 * difference between Docker and virtual machines (VMs): Docker needs less resources and has a very low boot-up-time, hence creating and discarding containers in great numbers possible with Docker, but not VMs
 
-== Tooling
-* https://docs.docker.com/docker-for-mac/edge-release-notes/[Docker Desktop]
-* nice UI for managing docker containers: https://kitematic.com[Kitematic]
-** will be integrated into Docker Desktop in 2020
-** https://github.com/docker/kitematic[github]
-** https://github.com/docker/kitematic/releases[also available for Windows]
 
-== Common Commands
-* general information about Docker installation:
+== Starting, Stoping and Deleting Containers and Images
+The following series of commands is designed to be executed in the order given below.
+
+=== Get general information about Docker installation
 ----
 docker info
 ----
 
-* create new container and start it:
+=== Starting A Container From Existing Image
 ----
-docker run
-----
-
-* create new container for httpd-server and start it, using a specified name instead of auto-generated name:
-----
-docker run --name steven.schwenke httpd:2.4
+docker container run -p 80:80 --name first-container nginx
 ----
 
-* "docker run" runs interactively. To run as daemon in background:
+* will download needed images from remote docker repository
+* in browser at localhost:80 welcome-page of nginx
+* will block current terminal
+* -p for --publish
+* -- name specifies name; if left, Docker generates name
+
+=== List Running Containers
 ----
-docker run -D
+docker container ls
 ----
 
-* start existing container:
+* has to be run in new terminal because first terminal should be blocked with run-command
+* should list formerly started 'first-container'
+* old command 'docker ps'
+
+
+=== Stop Running Container
 ----
-docker start
+docker container stop first-container
 ----
 
-* stop running container (instance of container can be restarted later)
+* running 'docker ps' again will show it is stopped
+
+=== Restart Existing Container
 ----
-docker stop
+docker container start first-container
 ----
 
+* will not block current terminal
 * https://stackoverflow.com/questions/34782678/difference-between-running-and-starting-a-docker-container[difference between run und start]:
-** run creates new container with _docker create_ from an image (which is downloaded if not existing in local
-repository) and executes container
-** start launches previously stopped container with same settings. Opposite to "stop".
+** 'run' is 'docker create', which creates a container from an image which is downloaded if not existing locally,
+plus 'docker start'
+** 'start' launches previously stopped container with same settings. Opposite to "stop".
+
+=== Stop Running Container (again)
+----
+docker container stop first-container
+----
+
+=== List All Containers
+----
+docker container ls -a
+----
+* lists all containers, even exited (exit-code 0)
+* should show container 'first-container'
+
+=== Remove Container
+----
+docker container rm first-container
+----
+* will delete formerly created 'first-container'
+
+=== List All Images
+----
+docker image ls
+----
+* image for nginx still present in local repository
+
+=== Remove Image
+----
+docker image rm nginx
+----
+* will delete image for nginx from **local** repository
+
+=== Trying to 'start' Non-Existing Container
+----
+docker container start nginx
+----
+* will result in error because image nginx is not present in local repository and has to be downloaded again, for
+example with 'docker run'
+
+=== Some Tweaks for this Section
+The examples above can be tweaked a little with the following concepts.
+
+==== Running Container in Background as a Daemon
+----
+docker container run -p 80:80 --name first-container --detach nginx
+----
+* "docker run" runs interactively. To run as daemon in background, sue --detach
+* (don't forget to stop newly started container)
+
+==== Referencing Containers With Container ID
+* make sure to have a container named 'first-container' (and did not delete it)
+* then run:
+----
+docker container start first-container
+docker container ls
+----
+* 'ls' should print something like this:
+----
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                NAMES
+f67316fc16c3   nginx     "/docker-entrypoint.…"   4 seconds ago   Up 4 seconds   0.0.0.0:80->80/tcp   first-container
+----
+* to stop this container, you may reference the container ID like this (instead of the name):
+----
+docker container stop f6
+----
+
+
+== STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
+
+* show logs of running container ("-f" for "follow"):
+----
+docker logs -f [container-id]
+----
+
+
+
+
 
 * kill one or more running containers:
 ----
@@ -65,33 +210,13 @@ docker kill
 ----
 docker inspect
 ----
-* list running containers:
-----
-docker ps
-----
-* list containers, even exited (exit-code 0):
-----
-docker ps -a
-----
 * pull image from remote registry so it is available on local machine:
 ----
 docker pull
 ----
-* list all images in local repository:
-----
-docker images
-----
-* example: pull image "hello world" from remote registry to local machine and start it:
-----
-docker run hello-world
-----
 * more interesting hello-word example:
 ----
 docker run docker/whalesay cowsay "I am a big fat-ass whale!"
-----
-* show logs of running container ("-f" for "follow"):
-----
-docker logs -f [container-id]
 ----
 * run command in running container:
 ----
