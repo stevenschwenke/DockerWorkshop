@@ -4,12 +4,13 @@
 
 This repository consists of notes, links and examples for learning the basics of Docker.
 
-There are three main source I used in creating this workshop:
+These are the main sources I used in creating this workshop:
 
 * https://www.udemy.com/course/docker-for-java-developers/[Udemy workshop Docker for Java Developers by John
 Thompson]. Johns Docker Cheat Sheet can be found https://springframework.guru/docker-cheat-sheet-for-spring-devlopers/[here].
 * https://github.com/msgoat/cxp-dox-home/[Cloud Expert Program of msg].
 * https://www.udemy.com/course/docker-mastery/[Docker Mastery: with Kubernetes +Swarm from a Docker Captain]
+* https://docs.docker.com[docs.docker.com], the official documentation
 
 The course may be used for learning Docker on your own or facilitating workshops.
 
@@ -168,10 +169,9 @@ The examples above can be tweaked a little with the following concepts.
 
 ==== Running Container in Background as a Daemon
 ----
-docker container run -p 80:80 --name first-container --detach nginx
+docker container run -p 80:80 --name first-container -d nginx
 ----
-* "docker run" runs interactively. To run as daemon in background, sue --detach
-* (don't forget to stop newly started container)
+* "docker run" runs interactively. To run as daemon in background, use --detach or -d
 
 ==== Referencing Containers With Container ID
 * make sure to have a container named 'first-container' (and did not delete it)
@@ -190,13 +190,85 @@ f67316fc16c3   nginx     "/docker-entrypoint.…"   4 seconds ago   Up 4 seconds
 docker container stop f6
 ----
 
+==== Cleaning Up
+----
+docker container rm -f f6 a1 0d
+----
+* will remove containers with IDs beginning with 'f6', 'a1' and '0d', even if they are running (will be stopped)
+
+
+== Logs
+=== (Re-)Creating Our Container to Test
+----
+docker container run -p 80:80 --name first-container -d nginx
+----
+
+=== Show Logs
+----
+docker container logs first-container
+----
+* shows only the logs created up until now
+
+=== Show Logs and Follow
+----
+docker container logs -f first-container
+----
+* Refresh nginx-page in browser and see how requests are logged
+* leave with Ctrl + c
+
+== Processes
+In Linux, 'top' shows running processes:
+----
+top
+----
+----
+%Cpu(s):  0.0 us,  0.1 sy,  0.0 ni, 99.9 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :  25490.2 total,  23489.3 free,    599.1 used,   1401.7 buff/cache
+MiB Swap:   7168.0 total,   7168.0 free,      0.0 used.  24195.6 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+    1 root      20   0    1052    664    524 S   0.0   0.0   0:01.05 init
+  111 root      20   0     892     84     20 S   0.0   0.0   0:00.00 init
+  112 root      20   0     892     84     20 S   0.0   0.0   0:00.04 init
+  113 root      20   0 1753032  29360  13152 S   0.0   0.1   0:02.22 docker-desktop-
+  122 root      20   0     892     84     20 S   0.0   0.0   0:00.00 init
+  123 stevens+  20   0  765524  42732  29364 S   0.0   0.2   0:02.64 docker
+  162 root      20   0     900     92     20 S   0.0   0.0   0:00.00 init
+  163 root      20   0     900     92     20 S   0.0   0.0   0:00.11 init
+  164 stevens+  20   0   10160   5256   3424 S   0.0   0.0   0:00.12 bash
+ 2104 root      20   0    1040    216     20 S   0.0   0.0   0:00.00 init
+ 2105 root      20   0    1040    216     20 S   0.0   0.0   0:00.36 init
+ 2106 stevens+  20   0   10164   5220   3448 S   0.0   0.0   0:00.27 bash
+12469 stevens+  20   0   10884   3736   3136 R   0.0   0.0   0:00.00 top
+----
+
+Also available for running Docker containers:
+----
+docker container top first-container
+----
+----
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                3118                3097                0                   08:50               ?                   00:00:00            nginx: master process nginx -g daemon off;
+uuidd               3167                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3168                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3169                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3170                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3171                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3172                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3173                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3174                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3175                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3176                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3177                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+uuidd               3178                3118                0                   08:50               ?                   00:00:00            nginx: worker process
+stevenschwenke@msgn13623:/mnt/c/Users/schwenks$ yc
+----
+
+
 
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
 
-* show logs of running container ("-f" for "follow"):
-----
-docker logs -f [container-id]
-----
+
 
 
 
