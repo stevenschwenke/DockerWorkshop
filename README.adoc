@@ -490,12 +490,6 @@ offers DNS by default.
 
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
 
-TODO ipcalc im Temrinal ansehen (auf Linux installieren)
-
-TEMP:
-Anywhere I do a docker container run <stuff> nginx , where nginx  is the image you should use, replace that with nginx:alpine , which still has ping command in it.
-
-
 === Other Stuff
 * kill one or more running containers:
 ----
