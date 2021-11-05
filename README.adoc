@@ -471,6 +471,16 @@ docker network connect bridge new_nginx
 docker network rm my_app_net
 ----
 
+
+==== Resolving Container Addresses with DNS
+
+Within a network **other than 'bridge'**, containers are DNS-resolved by their names. Hence, no manual name resolving
+is necessary and IPs are to be avoided.
+
+Containers in the default network 'bridge' could be linked together but it's easier to create a new network that
+offers DNS by default.
+
+
 ==== Docker Networks Are A Default Security
 * communication between containers never leaves host
 * all ports closed by default and have to be exposed manually
