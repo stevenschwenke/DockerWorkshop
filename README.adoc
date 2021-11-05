@@ -355,10 +355,135 @@ docker image rm alpine
 docker image ls
 ----
 
+== Networks
+
+* Docker containers live inside private virtual networks.
+* Each container is connected to a private virtual network called "bridge".
+* Each virtual network routes through NAT (Network Address Translation) firewall on host IP so that traffic can be
+routed from the host inside the virtual networks to the containers.
+* All containers on a virtual network can talk to each other specifying without -p.
+* best practice: create one virtual network for each app
+
+=== Docker Container Is Not On Same Network As Host
+
+Start some container to play with:
+----
+docker container run -p 80:80 --name webhost -d nginx
+----
+
+Review ports:
+----
+docker container port webhost
+----
+
+Review IP of container (excerpt from config file that can be shown in full with 'docker container inspect'):
+----
+docker container inspect --format '{{ .NetworkSettings.IPAddress }}' webhost
+----
+
+IP local machine can be reviewed using
+----
+ifconfig
+----
+
+As an example, the container may have the IP 172.17.0.2 while the host has 192.168.8.170 with netmask 255.255.255.240.
+That means that the IP addresses are not on the same network. The usable host IP range of the network is 192.168.8
+.161 to 192.168.8.174, which does not include 172.17.0.2. This is easy to spot considering the netmask beginning with
+255 which means that the first part of the IP is reserved for the network and hence has to be 192 for all hosts on
+this network. To experiment with subnet addressing, https://www.calculator.net/ip-subnet-calculator.html[the IP
+Subnet Calculator].
+
+
+=== Creating Networks and Connecting Containers
+(Make sure the nginx started in the previous part is still running.)
+
+==== Listing All Networks
+----
+docker network ls
+----
+* 'bridge'-network is default docker virtual network to NAT behind host IP
+
+==== Inspect Network to See Which Containers are Connected
+----
+docker network inspect bridge
+----
+* should list the container of the nginx under 'Containers:'
+* default network to start containers in
+
+----
+docker network inspect host
+----
+* should not have any container connected to it right now
+* containers in host network are directly in the network of the host, removing benefits of
+containerization
+
+----
+docker network inspect none
+----
+* should not have any container connected to it right now
+* for containers with disabled networking
+
+==== Creating A Network and Connect Container to it
+First, create a new network:
+----
+docker network create my_app_net
+----
+Then, create new container and connect it directly in the network:
+----
+docker container run -d --name new_nginx --network my_app_net nginx
+docker network inspect my_app_net
+----
+Also, existing containers may be connected to a network:
+----
+docker network connect my_app_net webhost
+----
+Syntax for this is 'docker network connect [OPTIONS] NETWORK CONTAINER
+
+Now, there are two containers connected to the network 'my_app_net':
+----
+docker network inspect my_app_net
+----
+
+Disconnect both of the containers:
+----
+docker network disconnect my_app_net webhost
+docker network disconnect my_app_net new_nginx
+----
+
+Now, container 'webhost' is still connected to network 'bridge' and container 'new_nginx' is connected to no network
+at all:
+----
+docker container inspect webhost
+docker container inspect new_nginx
+----
+
+A container can also be connected to multiple networks, so let's connect 'webhost' to 'my_app_net':
+----
+docker network connect webhost my_app_net
+----
+
+Make sure to connect your running containers back to 'bridge' and remove network my_app_net with
+----
+docker network disconnect my_app_net webhost
+docker network disconnect my_app_net new_nginx
+docker network connect bridge webhost
+docker network connect bridge new_nginx
+docker network rm my_app_net
+----
+
+==== Docker Networks Are A Default Security
+* communication between containers never leaves host
+* all ports closed by default and have to be exposed manually
+
+
 
 
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
 
+TODO ipcalc im Temrinal ansehen (auf Linux installieren)
+
+TEMP:
+Anywhere I do a docker container run <stuff> nginx , where nginx  is the image you should use, replace that with nginx:alpine , which still has ping command in it.
 
 
 === Other Stuff
