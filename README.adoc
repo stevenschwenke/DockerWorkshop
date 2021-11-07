@@ -486,6 +486,132 @@ offers DNS by default.
 * all ports closed by default and have to be exposed manually
 
 
+== Images
+* binaries the application needs
+* kernel and drivers provided by host
+* https://hub.docker.com[hub.docker.com] is main source of images
+* official images named 'official' and without user in name (normally '[account name]/[image]'), for example 'nginx'
+* official images checked by Docker (quality, documentation)
+* best practice to start with official images
+* pull image from remote registry, so it is available on local machine:
+----
+docker pull nginx
+----
+* get information (explanations below) about image:
+----
+docker image inspect nginx
+----
+=> With 'docker image inspect', the possible mappable ports can be reviewed, see "ExposedPorts" in the output.
+
+=== Tags
+* tag = pointer to a specific image commit in the repository, created when building the image
+* tags can be used to reference the exact image:
+----
+docker pull nginx:1.11
+----
+* one image may have multiple tags: 'latest', '1', '1.11.9', '1.11' and '1.11.9-alpine' that all reference the exact
+same image (column IMAGE ID)
+** 'latest' = special tag showing this version is the most recent one. If no tag is given when referencing image,
+'latest' is assumed.
+** '1', '1.11' and '1.11.9' = version numbers that can be used to reference major, minor and bugfix releases
+** '1.11.9-alpine' = this version uses base image Alpine (sometimes, default images are bigger because they use
+bigger base images like Ubuntu)
+* images with different tags listed in multiple lines with 'image ls':
+----
+$ docker pull nginx
+$ docker pull nginx:1.21.3
+$ docker pull nginx:1.21.3-alpine
+$ docker image ls
+REPOSITORY                            TAG             IMAGE ID       CREATED        SIZE
+nginx                                 1.21.3          87a94228f133   3 weeks ago    133MB
+nginx                                 latest          87a94228f133   3 weeks ago    133MB
+nginx                                 1.21.3-alpine   513f9a9d8748   8 weeks ago    22.9MB
+----
+* official images can be found under https://hub.docker.com/search?type=image["explore" in Docker Hub]
+* some experimentation with tags (Account at Docker Hub needed):
+----
+$ docker login
+Authenticating with existing credentials...
+Login Succeeded
+
+$ docker image ls
+REPOSITORY                            TAG             IMAGE ID       CREATED        SIZE
+nginx                                 1.21.3          87a94228f133   3 weeks ago    133MB
+nginx                                 latest          87a94228f133   3 weeks ago    133MB
+nginx                                 1.21.3-alpine   513f9a9d8748   8 weeks ago    22.9MB
+
+$ docker image tag nginx stevenschwenke/nginx
+
+$ docker image ls
+REPOSITORY                            TAG             IMAGE ID       CREATED        SIZE
+nginx                                 1.21.3          87a94228f133   3 weeks ago    133MB
+nginx                                 latest          87a94228f133   3 weeks ago    133MB
+stevenschwenke/nginx                  latest          87a94228f133   3 weeks ago    133MB
+nginx                                 1.21.3-alpine   513f9a9d8748   8 weeks ago    22.9MB
+
+$ docker image push stevenschwenke/nginx
+Using default tag: latest
+The push refers to repository [docker.io/stevenschwenke/nginx]
+9959a332cf6e: Mounted from library/nginx
+f7e00b807643: Mounted from library/nginx
+f8e880dfc4ef: Mounted from library/nginx
+788e89a4d186: Mounted from library/nginx
+43f4e41372e4: Mounted from library/nginx
+e81bff2725db: Mounted from library/nginx
+latest: digest: sha256:7250923ba3543110040462388756ef099331822c6172a050b12c7a38361ea46f size: 1570
+
+$ docker image tag stevenschwenke/nginx stevenschwenke/nginx:someTag
+
+$ docker image ls
+REPOSITORY                            TAG             IMAGE ID       CREATED        SIZE
+nginx                                 1.21.3          87a94228f133   3 weeks ago    133MB
+nginx                                 latest          87a94228f133   3 weeks ago    133MB
+stevenschwenke/nginx                  latest          87a94228f133   3 weeks ago    133MB
+stevenschwenke/nginx                  someTag         87a94228f133   3 weeks ago    133MB
+nginx                                 1.21.3-alpine   513f9a9d8748   8 weeks ago    22.9MB
+
+$ docker image push stevenschwenke/nginx:someTag
+The push refers to repository [docker.io/stevenschwenke/nginx]
+9959a332cf6e: Layer already exists
+f7e00b807643: Layer already exists
+f8e880dfc4ef: Layer already exists
+788e89a4d186: Layer already exists
+43f4e41372e4: Layer already exists
+e81bff2725db: Layer already exists
+someTag: digest: sha256:7250923ba3543110040462388756ef099331822c6172a050b12c7a38361ea46f size: 1570
+
+$ docker logout
+----
+
+=== Layers
+* images consists of layers, where every layer is a command
+* layers visible with:
+----
+docker history nginx:latest
+----
+----
+$ docker history nginx:latest
+IMAGE          CREATED       CREATED BY                                      SIZE      COMMENT
+87a94228f133   3 weeks ago   /bin/sh -c #(nop)  CMD ["nginx" "-g" "daemon…   0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  STOPSIGNAL SIGQUIT           0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  EXPOSE 80                    0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  ENTRYPOINT ["/docker-entr…   0B
+<missing>      3 weeks ago   /bin/sh -c #(nop) COPY file:09a214a3e07c919a…   4.61kB
+<missing>      3 weeks ago   /bin/sh -c #(nop) COPY file:0fd5fca330dcd6a7…   1.04kB
+<missing>      3 weeks ago   /bin/sh -c #(nop) COPY file:0b866ff3fc1ef5b0…   1.96kB
+<missing>      3 weeks ago   /bin/sh -c #(nop) COPY file:65504f71f5855ca0…   1.2kB
+<missing>      3 weeks ago   /bin/sh -c set -x     && addgroup --system -…   64MB
+<missing>      3 weeks ago   /bin/sh -c #(nop)  ENV PKG_RELEASE=1~buster     0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  ENV NJS_VERSION=0.6.2        0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  ENV NGINX_VERSION=1.21.3     0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  LABEL maintainer=NGINX Do…   0B
+<missing>      3 weeks ago   /bin/sh -c #(nop)  CMD ["bash"]                 0B
+<missing>      3 weeks ago   /bin/sh -c #(nop) ADD file:910392427fdf089bc…   69.3MB
+----
+* existing layers can be used to build upon, for example multiple applications in different images may use Ubuntu as
+a base layer image which is why it has to be downloaded only once.
+
+
 
 
 == STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
@@ -495,11 +621,6 @@ offers DNS by default.
 ----
 docker kill
 ----
-* pull image from remote registry so it is available on local machine:
-----
-docker pull
-----
-
 
 == Dockerfiles
 
