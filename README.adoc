@@ -770,7 +770,13 @@ mvn clean package docker:build
 * creates image in local repository so it is visible with "docker images"
 * Alternative for Gradle: https://github.com/Transmode/gradle-docker
 
-
+== Best Practices
+* route all logging to stdout and stderr to have Docker handle the logs instead of just writing a file within a
+container
+----
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+	&& ln -sf /dev/stderr /var/log/nginx/error.log
+----
 
 == Docker-Compose
 * = Tool for multi-container Docker systems
