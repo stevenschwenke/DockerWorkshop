@@ -765,16 +765,15 @@ $ docker volume create
 ----
 docker cp [container-id]:[path in container] [local path]
 ----
-* start a webserver with current directory as source directory for files to serve:
+
+
+=== Bind Mounts
+* = link container directory to host directory
+* easy example: start a webserver with current directory as source directory for files to serve (will serve index.html in that directory):
 ----
 docker run -d --name stevens-httpd -p 8003:80 -v ${PWD}:/usr/local/apache2/htdocs/ httpd:2.4
 ----
 
-
-
-=== Bind Mounts
-* = link container path to host path
-TODO
 
 == Walkthrough: From Sourcecode to Container
 
