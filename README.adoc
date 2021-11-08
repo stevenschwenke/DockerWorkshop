@@ -170,6 +170,13 @@ example with 'docker run'
 === Some Tweaks for this Section
 The examples above can be tweaked a little with the following concepts.
 
+==== Destroying Container After Usage
+----
+docker container run -p 80:80 --name first-container --rm nginx
+----
+* '--rm' will destroy and delete the container after it has been run
+* useful for short demonstrations where the container is not needed afterwards
+
 ==== Running Container in Background as a Daemon
 ----
 docker container run -p 80:80 --name first-container -d nginx
