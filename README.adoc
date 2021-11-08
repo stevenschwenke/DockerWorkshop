@@ -619,38 +619,18 @@ IMAGE          CREATED       CREATED BY                                      SIZ
 a base layer image which is why it has to be downloaded only once.
 
 
-
-
-== STUFF TO STRUCTURE INTO NEW WORKSHOP STRUCTURE BELOW THIS LINE
-
-=== Other Stuff
-* kill one or more running containers:
-----
-docker kill
-----
-
 == Dockerfiles
-
 * = file named "Dockerfile" used to build image
-
-=== Layering
-* Dockerfile contains set of instructions / commands / directives
-* every command run will create a new image layer, except for when multiple commands are linked with "\" (only one layer is created then)
-* each layer has its own image-ID (hash)
-* Hashes can be referenced via tags
-* returns tag-names of all installed images (see column "IMAGE ID"):
-----
-docker images
-----
-* returns only hash-values of all installed images:
-----
-docker images -q
-----
-- layers can be seen for example when running docker-compose up (see below)
-
-=== Building images with dockerfile
-
-Example Dockerfile taken from https://github.com/msgoat/cxp-dox-home/blob/master/docs/docker/docker_dockerfile_2_container_by_example.md[msg Cloud Expert Program]:
+* Layers in Dockerfiles:
+** Dockerfile contains set of instructions / commands / directives
+** every command run will create a new image layer, except for when multiple commands are linked with "&&" (only one
+layer is created then), like when creating the new user in the example below where 'echo', creating the group and the
+user should all be in one layer.
+** Order maters: As soon as one line is different from subsequent builds, all layers above that line are build anew,
+too. Hence, it's a good idea to copy the often-changing application files into the image as late / down in the
+Dockerfile as possible. Top of the Dockerfile: Stuff that changes less. Bottom of the Dockerfile: Stuff that changes
+more.
+* Example Dockerfile taken from https://github.com/msgoat/cxp-dox-home/blob/master/docs/docker/docker_dockerfile_2_container_by_example.md[msg Cloud Expert Program]:
 
 ----
 FROM adoptopenjdk/openjdk11:x86_64-alpine-jre-11.0.6_10
@@ -687,21 +667,22 @@ CMD ["java"]
 * first directive: "FROM". Can also be "FROM scratch" which builds image as a Base-Image.
 * "RUN" to execute commands while building the image, for example "RUN apt-get install httpd" to setup the system.
 Multi-line commands with "&&".
-* "ENV" = environment variables, for example "ENV JAVA_HOME=/home/bla/myjava". Can be overriden when starting container with "docker run -d -e MYSQL_PASSWORD=geheim myImage:1.0"
+* "ENV" = environment variables, for example "ENV JAVA_HOME=/home/bla/myjava". Can be overridden when starting
+container with "docker run -d -e MYSQL_PASSWORD=geheim myImage:1.0"
 * "ADD" to copy files from host into image, for example "ADD /var/archive.tgz /var/" - archive-files will be extracted in target directory. Also possible with URIs: "ADD https://bla/index.html /tmp/"
-* "EXPOSE" to expose ports, for example "EXPOSE 53/udp". Attention: dockerfile is only documentation, ports have to be mapped at container start:
-* "docker run -P [...]" mapps the ports documented in dockerfile
+* "EXPOSE" to expose ports, for example "EXPOSE 53/udp". Attention: dockerfile is only documentation, ports have to
+be mapped at container start with "docker run -p"
 * "USER" to execute commands by a certain user
 * "ENTRYPOINT" to define what should be done after container start. Best-practice: EXEC-form instead of Shell-Form.
 * "CMD" is executed when launching the image, for example to start processes within the container
 * process of application should be run by separate user, see above "adding run user spring to system" and "USER spring"
-* builds image-file from remote dockerfile:
+* build image-file from remote dockerfile:
 ----
 docker build -t [Registry]/[Image-Name]:[Tag] [path to dockerfile]
 ----
 * build image-file from local dockerfile:
 ----
-docker build -t fko-nginx .
+docker build -t stevenschwenke/mynginx .
 ----
 * builds image file with tag 1.0.0:
 ----
@@ -712,7 +693,7 @@ docker build -t bla:1.0.0 /home/bla/Dockerfile
 docker system prune
 ----
 * Build Context (folder in which docker build is executed) should be as small as possible by either placing it in a
-separate folder (from rest of project) or useing a .dockerignore -file.
+separate folder (from rest of project) or using a .dockerignore -file.
 
 == Docker Volumes Mechanism
 * container not supposed to be altered when running
@@ -771,12 +752,32 @@ mvn clean package docker:build
 * Alternative for Gradle: https://github.com/Transmode/gradle-docker
 
 == Best Practices
+=== Logging
 * route all logging to stdout and stderr to have Docker handle the logs instead of just writing a file within a
 container
 ----
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 	&& ln -sf /dev/stderr /var/log/nginx/error.log
 ----
+
+=== Keep System Clean
+* see space usage
+----
+docker system df
+----
+* clean up dangling images (= images that have been build but a newer version was build since then):
+----
+docker image prune
+----
+* remove all images not in use (= no containers from that image)
+----
+docker image prune -a
+----
+* clean up everything:
+----
+docker system prune
+----
+
 
 == Docker-Compose
 * = Tool for multi-container Docker systems
