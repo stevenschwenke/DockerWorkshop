@@ -844,7 +844,7 @@ docker system prune
 == Docker-Compose
 * = Tool for multi-container Docker systems
 * sufficient for small and medium-sized applications
-* example docker-compose.yml from https://docs.docker.com/compose/wordpress/:
+* example docker-compose.yml from https://docs.docker.com/compose/wordpress/[Wordpress]:
 
 [source,yml]
 ----
@@ -880,6 +880,27 @@ volumes:
 
 * "depends_on" causes container to be started after dependent containers have been started, but not necessarily finished starting! Hence: Race-condition possible. Workaround: "restart: always" will restart the container as often as needed to wait for dependent containers. See https://docs.docker.com/compose/compose-file/#depends_on
 * (see above) Fabric8 (Maven-plugin to start Docker from within Maven) will wait up to a specified  timeout for dependent containers to start
+
+* another example: nginx in front of httpd from https://github
+.com/BretFisher/udemy-docker-mastery/tree/main/compose-sample-2[Bret Fisher's Udemy Docker Mastery Course], enhanced with 'content'-folder for custom html pages:
+[source, yml]
+----
+version: '3'
+
+services:
+  proxy:
+    image: nginx:1.13 # this will use the latest version of 1.13.x
+    ports:
+      - '80:80' # expose 80 on host and sent to 80 in container
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./content:/usr/local/apache2/htdocs/
+  web:
+    image: httpd  # this will use httpd:latest
+    volumes:
+      - ./content:/usr/local/apache2/htdocs
+----
+
 * "docker compose"-commands have to be executed from directory where docker-compose-file is
 * start stack in current terminal (extensive logs!):
 ----
@@ -897,6 +918,45 @@ docker-compose down
 ----
 docker-compose ps
 ----
+* list running services:
+----
+docker-compose top
+----
+* Docker compose understands dot-notation for current directory (current directory will be mounted to /site within container):
+[source,yml]
+----
+services:
+    ...
+    volumes:
+        - .:/site
+    ...
+----
+
+=== Building Container Within Compose-File
+* from https://github.com/BretFisher/udemy-docker-mastery/blob/main/compose-sample-3/docker-compose.yml[Bret Fishers course]
+[source,yml]
+----
+version: '2'
+
+# based off compose-sample-2, only we build nginx.conf into image
+# uses sample HTML static site from https://startbootstrap.com/themes/agency/
+
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+    image: nginx-custom
+    ports:
+      - '80:80'
+  web:
+    image: httpd
+    volumes:
+      - ./html:/usr/local/apache2/htdocs/
+----
+* Will first look up image 'nginx-custom' in local repository. If not found, build it with nginx.Dockerfile.
+* for future runs, image will be found and not be build automatically; has to be manually deleted from image cache
+
 
 == Docker Swarm Mode
 * https://docs.docker.com/engine/swarm/
