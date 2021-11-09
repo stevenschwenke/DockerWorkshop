@@ -9,7 +9,8 @@ These are the main sources I used in creating this workshop:
 * https://www.udemy.com/course/docker-for-java-developers/[Udemy workshop Docker for Java Developers by John
 Thompson]. Johns Docker Cheat Sheet can be found https://springframework.guru/docker-cheat-sheet-for-spring-devlopers/[here].
 * https://github.com/msgoat/cxp-dox-home/[Cloud Expert Program of msg].
-* https://www.udemy.com/course/docker-mastery/[Docker Mastery: with Kubernetes +Swarm from a Docker Captain]
+* https://www.udemy.com/course/docker-mastery/[Docker Mastery: with Kubernetes +Swarm from a Docker Captain],
+https://github.com/bretfisher/udemy-docker-mastery[examples on Github]
 * https://docs.docker.com[docs.docker.com], the official documentation
 
 The course may be used for learning Docker on your own or facilitating workshops.
