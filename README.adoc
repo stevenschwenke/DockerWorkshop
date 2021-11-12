@@ -1140,3 +1140,7 @@ docker secret rm
 == Cookbooks
 * See last section "Spring Boot Cookbook" for concrete examples
 * explains numerous examples that are available at https://github.com/springframeworkguru
+
+== Further Reading
+* https://github.com/veggiemonk/awesome-docker#hosting-images-registries[Awesome Docker Link List] with tons of
+material as links
