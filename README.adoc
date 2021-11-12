@@ -696,6 +696,10 @@ docker system prune
 * Build Context (folder in which docker build is executed) should be as small as possible by either placing it in a
 separate folder (from rest of project) or using a .dockerignore -file.
 
+=== Best Practices for Dockerfiles
+* don't ever use 'latest' for base image, instead pin a certain version to achieve more stability + pin versions for installed software, too!
+* note versions of intalled software at the very top as environment variable (ENV)
+
 == Persisting Data: Docker Volumes Mechanism
 * container not supposed to be altered when running, immutable and ephemeral (= containers should at any given time
 be disposable)
@@ -957,8 +961,24 @@ services:
 * Will first look up image 'nginx-custom' in local repository. If not found, build it with nginx.Dockerfile.
 * for future runs, image will be found and not be build automatically; has to be manually deleted from image cache
 
+== Repositories
+* default: pull and push images from Docker Hub
+* for pushing image to private repository, re-tagging necessary:
+----
+docker tag hello-world 127.0.0.1:5000/hello-world
+docker push 127.0.0.1:5000/hello-world
+docker pull 127.0.0.1:5000/hello-world
+----
+* running private repository locally:
+----
+docker container run -d -p 5000:5000 --name registry -v $(pwd)/registry-data:/var/lib/registry registry
+----
 
-== Docker Swarm Mode
+== Multi-Stage Builds
+* https://docs.docker.com/develop/develop-images/multistage-build/[See official docs]
+
+
+== Docker Swarm Mode (Deprecated; use Kubernetes instead!)
 * https://docs.docker.com/engine/swarm/
 * = built-in solution for container orchestration
 * multiple host systems run docker containers that talk to each other, forming a virtual single host out of multiple hosts
