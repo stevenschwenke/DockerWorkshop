@@ -619,6 +619,12 @@ IMAGE          CREATED       CREATED BY                                      SIZ
 * existing layers can be used to build upon, for example multiple applications in different images may use Ubuntu as
 a base layer image which is why it has to be downloaded only once.
 
+==== Analyze layers with dive
+* https://github.com/wagoodman/dive/[Dive]
+* start dive as Docker container and analyze httpd:2.4:
+----
+docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive httpd:2.4
+----
 
 == Dockerfiles
 * = file named "Dockerfile" used to build image
