@@ -81,7 +81,7 @@ Docker images are downloaded into local repository to be used.
 * difference between Docker and virtual machines (VMs): Docker needs less resources and has a very low boot-up-time, hence creating and discarding containers in great numbers possible with Docker, but not VMs
 
 
-== Starting, Stoping and Deleting Containers and Images
+== Starting, Stopping and Deleting Containers and Images
 The following series of commands is designed to be executed in the order given below.
 
 === Get general information about Docker installation
@@ -489,7 +489,7 @@ Containers in the default network 'bridge' could be linked together but it's eas
 offers DNS by default.
 
 
-==== Docker Networks Are A Default Security
+==== Docker Networks Have Default Security
 * communication between containers never leaves host
 * all ports closed by default and have to be exposed manually
 
@@ -893,6 +893,7 @@ volumes:
 
 * another example: nginx in front of httpd from https://github
 .com/BretFisher/udemy-docker-mastery/tree/main/compose-sample-2[Bret Fisher's Udemy Docker Mastery Course], enhanced with 'content'-folder for custom html pages:
+
 [source, yml]
 ----
 version: '3'
@@ -944,6 +945,7 @@ services:
 
 === Building Container Within Compose-File
 * from https://github.com/BretFisher/udemy-docker-mastery/blob/main/compose-sample-3/docker-compose.yml[Bret Fishers course]
+
 [source,yml]
 ----
 version: '2'
