@@ -864,6 +864,12 @@ mvn clean package docker:build
 * Alternative for Gradle: https://github.com/Transmode/gradle-docker
 
 == Best Practices
+=== Security
+* Docker runs with root on host system, so be careful on what images you pull from Docker Hub! Don't execute random code from the internet! Instead, use official images only.
+* Docker does not necessarily need to run in root mode: If no custom networks are used, you may use https://docs.docker.com/engine/security/rootless/[the rootless mode].
+* Scan repos, for example with https://snyk.io[Snyk] or https://github.com/aquasecurity/trivy[Trivy]
+* Discover "bad behavior" with https://sysdig.com/opensource/falco/[Falco]
+
 === Logging
 * route all logging to stdout and stderr to have Docker handle the logs instead of just writing a file within a
 container
