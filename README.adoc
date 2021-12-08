@@ -15,8 +15,67 @@ https://github.com/bretfisher/udemy-docker-mastery[examples on Github]
 
 The course may be used for learning Docker on your own or facilitating workshops.
 
+== Setup for this Workshop
+
+**Before** this workshop, please setup docker and the Amazon CLI.
+
+=== Install Docker
+
+Docker install can be done in multiple ways, for example via https://docs.docker.com/desktop/windows/install/[Docker Desktop], https://docs.microsoft.com/de-de/windows/wsl/tutorials/wsl-containers[Windows Subsystem for Linux] or just https://docs.docker.com/engine/install/ubuntu/[using a Linux and installing Docker]. It is recommended to use a (relatively) native environment such as WSL with Ubuntu.
+
+Test if the installation was successful by running
+
+----
+$ docker --version
+----
+
+You should see something like
+
+----
+Docker version 20.10.8, build 3967b7d
+----
+
+=== Install Amazon CLI
+
+Use the https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html[official User Guide] to install
+the CLI on your machine.
+
+After successful installation, try running
+
+----
+C:\> aws --version
+----
+
+You should see something like
+
+----
+aws-cli/2.3.7 Python/3.8.8 Windows/10 exe/AMD64 prompt/off
+----
 
 == Why Docker
+
+=== Some Convenience Examples for Developers
+
+Here are some examples of how Docker can be used in the context of developing software.
+
+Want to use another operating system? Try Ubuntu or Debian with:
+----
+$ docker run -it --name="ubuntu" ubuntu bash
+----
+----
+$ docker run -it --name="debian" debian bash
+----
+
+Want to draw nice graphs without installing Draw.io?
+----
+$ docker run -it --name="draw-io" -p 8080:8080 -p 8443:8443 jgraph/drawio
+----
+
+Docker can also be used to https://www.codemag.com/article/1811021/Docker-for-Developers[setup your whole working environment].
+
+And here's https://awesome-docker.netlify.app[curated list of Docker resources and projects].
+
+=== Some History
 
 * one of the major shifts in IT:
 ** 90's Mainframe to PC
@@ -28,26 +87,7 @@ specific setup detail
 * containers allow exactly same setup for development, testing and production
 
 
-== Setup for this Workshop
-
-**Before** this workshop, please setup docker. This can be done in multiple ways, for example via https://docs.docker.com/desktop/windows/install/[Docker Desktop],
-https://docs.microsoft.com/de-de/windows/wsl/tutorials/wsl-containers[Windows Subsystem for Linux] or just
-https://docs.docker.com/engine/install/ubuntu/[using a Linux and installing Docker]. It is recommended to use a
-(relatively) native environment such as WSL with Ubuntu.
-
-Test if the installation was successful by running
-
-----
-docker --version
-----
-
-You should see something like
-
-----
-Docker version 20.10.8, build 3967b7d
-----
-
-== Command Line Structure
+== New and Old Command Line Structure
 
 Structure of commands changed.
 
