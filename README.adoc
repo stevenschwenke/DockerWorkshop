@@ -898,7 +898,7 @@ docker system prune
 ----
 
 
-== Docker-Compose
+== Docker Compose
 * = Tool for multi-container Docker systems
 * sufficient for small and medium-sized applications
 * example docker-compose.yml from https://docs.docker.com/compose/wordpress/[Wordpress]:
@@ -962,23 +962,23 @@ services:
 * "docker compose"-commands have to be executed from directory where docker-compose-file is
 * start stack in current terminal (extensive logs!):
 ----
-docker-compose up
+docker compose up
 ----
 * start stack as demon (no logs):
 ----
-docker-compose up -d
+docker compose up -d
 ----
 * shut down all containers inside the docker-compose-file:
 ----
-docker-compose down
+docker compose down
 ----
 * show running containers:
 ----
-docker-compose ps
+docker compose ps
 ----
 * list running services:
 ----
-docker-compose top
+docker compose top
 ----
 * Docker compose understands dot-notation for current directory (current directory will be mounted to /site within container):
 [source,yml]
